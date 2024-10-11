@@ -4,74 +4,16 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
         <title>Go Playground with Monaco Editor and Vim Mode</title>
-        <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-        }
-        #container {
-            width: 800px;
-            height: 400px;
-            border: 1px solid #454545;
-            margin-bottom: 10px;
-        }
-        #controls {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        #result-container {
-            display: none;
-        }
-        #result {
-            width: 800px;
-            min-height: 100px;
-            border: 1px solid #454545;
-            padding: 10px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            white-space: pre-wrap;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            overflow: auto;
-        }
-        #status {
-            color: #d4d4d4;
-            margin-top: 5px;
-        }
-        #vim-note {
-            display: none;
-            color: #569cd6;
-            margin-top: 10px;
-            font-style: italic;
-        }
-        button {
-            background-color: #0e639c;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            margin-right: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #1177bb;
-        }
-        h2, h3 {
-            color: #d4d4d4;
-        }
-        #share-url {
-            display: none;
-            margin-bottom: 10px;
-            padding: 5px;
-            background-color: #2d2d2d;
-            border: 1px solid #454545;
-        }
-    </style>
+        <link rel="stylesheet" type="text/css" href="/assets/styles.css">
     </head>
     <body>
 
         <h2>Go Playground with Monaco Editor and Vim Mode</h2>
 
-        <div id="share-url"></div>
+        <div id="share-url-container">
+            <input type="text" id="share-url" readonly>
+            <div id="share-url-tooltip">URL copied to clipboard!</div>
+        </div>
         <div id="container"></div>
         <div id="status"></div>
         <div id="vim-note">Note: In Vim mode, you can use the :w command to run
@@ -89,131 +31,10 @@
             <div id="result"></div>
         </div>
 
+        <!-- Include RequireJS -->
         <script
-            src="https://cdn.jsdelivr.net/npm/monaco-editor@latest/min/vs/loader.js"></script>
-        <script>
-  const defaultCode = `package main
-
-import "fmt"
-
-func main() {
-    fmt.Println("Hello, Go!")
-}`;
-
-  require.config({
-    paths: {
-        'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs',
-        'monaco-vim': 'https://cdn.jsdelivr.net/npm/monaco-vim@0.4.1/dist/monaco-vim',
-    }
-  });
-  require(['vs/editor/editor.main', 'monaco-vim'], function(_, MonacoVim) {
-    var editor = monaco.editor.create(document.getElementById('container'), {
-      value: defaultCode,
-      language: 'go',
-      theme: 'vs-dark'
-    });
-    var statusNode = document.getElementById('status');
-    var vimMode;
-    var isVimModeEnabled = true;
-    var vimNoteElement = document.getElementById('vim-note');
-    var shareUrlElement = document.getElementById('share-url');
-
-    function initVimMode() {
-      vimMode = MonacoVim.initVimMode(editor, statusNode);
-      
-      // Define custom ex command for :w to run the code
-      MonacoVim.VimMode.Vim.defineEx('w', '', function() {
-        executeGoCode();
-      });
-      
-      // Show the Vim note
-      vimNoteElement.style.display = 'block';
-    }
-
-    function disableVimMode() {
-      if (vimMode) {
-        vimMode.dispose();
-      }
-      
-      // Hide the Vim note
-      vimNoteElement.style.display = 'none';
-    }
-
-    initVimMode();
-
-    document.getElementById('toggle-vim-btn').addEventListener('click', function() {
-      if (isVimModeEnabled) {
-        disableVimMode();
-        this.textContent = 'Enable Vim Mode';
-      } else {
-        initVimMode();
-        this.textContent = 'Disable Vim Mode';
-      }
-      isVimModeEnabled = !isVimModeEnabled;
-    });
-
-    document.getElementById('run-btn').addEventListener('click', executeGoCode);
-
-    document.getElementById('reset-btn').addEventListener('click', function() {
-      editor.setValue(defaultCode);
-      document.getElementById('result-container').style.display = 'none';
-      shareUrlElement.style.display = 'none';
-    });
-
-    document.getElementById('share-btn').addEventListener('click', shareGoCode);
-
-    async function executeGoCode() {
-      const resultContainer = document.getElementById('result-container');
-      const resultElement = document.getElementById('result');
-      resultContainer.style.display = 'block';
-      resultElement.textContent = '$ go run main.go\nCompiling...';
-      const goCode = editor.getValue();
-
-      const result = await runGoCode(goCode);
-
-      if (result.Errors) {
-        resultElement.textContent = `$ go run main.go\nError: ${result.Errors}`;
-      } else {
-        resultElement.textContent = `$ go run main.go\n${result.Events.map(event => event.Message).join('\n')}`;
-      }
-    }
-
-    async function runGoCode(code) {
-      const response = await fetch('http://localhost:8080/compile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'learn.gopherguides.com/1.0'
-        },
-        body: JSON.stringify({
-          version: 2,
-          body: code
-        })
-      });
-      return await response.json();
-    }
-
-    async function shareGoCode() {
-      const goCode = editor.getValue();
-      try {
-        const response = await fetch('http://localhost:8080/share', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'text/plain',
-            'User-Agent': 'learn.gopherguides.com/1.0'
-          },
-          body: goCode
-        });
-        const result = await response.json();
-        shareUrlElement.textContent = `Shared URL: ${result.shareURL}`;
-        shareUrlElement.style.display = 'block';
-      } catch (error) {
-        console.error('Error sharing code:', error);
-        shareUrlElement.textContent = 'Error sharing code. Please try again.';
-        shareUrlElement.style.display = 'block';
-      }
-    }
-  });
-</script>
+            src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+        <!-- Include external JavaScript file -->
+        <script src="/assets/scripts.js"></script>
     </body>
 </html>
