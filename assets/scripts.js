@@ -20,7 +20,8 @@ require(['vs/editor/editor.main', 'monaco-vim'], function (_, MonacoVim) {
     });
     var statusNode = document.getElementById('status');
     var vimMode;
-    var isVimModeEnabled = true;
+    var isVimModeEnabled = localStorage.getItem('viMode') === 'true'; // Retrieve Vim mode state from localStorage
+    // var isVimModeEnabled = true;
     var vimNoteElement = document.getElementById('vim-note');
     var shareUrlContainer = document.getElementById('share-url-container');
     var shareUrlElement = document.getElementById('share-url');
@@ -36,6 +37,8 @@ require(['vs/editor/editor.main', 'monaco-vim'], function (_, MonacoVim) {
 
         // Show the Vim note
         vimNoteElement.style.display = 'block';
+        // Update the vim button text
+        document.getElementById('toggle-vim-btn').textContent = 'Disable Vim Mode';
     }
 
     function disableVimMode() {
@@ -47,7 +50,9 @@ require(['vs/editor/editor.main', 'monaco-vim'], function (_, MonacoVim) {
         vimNoteElement.style.display = 'none';
     }
 
-    initVimMode();
+    if (isVimModeEnabled) {
+        initVimMode();
+    }
 
     editor.onDidChangeModelContent(() => {
         shareUrlContainer.style.display = 'none';
@@ -62,6 +67,7 @@ require(['vs/editor/editor.main', 'monaco-vim'], function (_, MonacoVim) {
             this.textContent = 'Disable Vim Mode';
         }
         isVimModeEnabled = !isVimModeEnabled;
+        localStorage.setItem('viMode', isVimModeEnabled); // Store Vim mode state in localStorage
     });
 
     document.getElementById('run-btn').addEventListener('click', executeGoCode);

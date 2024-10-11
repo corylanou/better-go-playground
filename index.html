@@ -10,10 +10,6 @@
 
         <h2>Go Playground with Monaco Editor and Vim Mode</h2>
 
-        <div id="share-url-container">
-            <input type="text" id="share-url" readonly>
-            <div id="share-url-tooltip">URL copied to clipboard!</div>
-        </div>
         <div id="container"></div>
         <div id="status"></div>
         <div id="vim-note">Note: In Vim mode, you can use the :w command to run
@@ -22,8 +18,12 @@
         <div id="controls">
             <button id="run-btn">Run Go Code</button>
             <button id="reset-btn">Reset Code</button>
-            <button id="toggle-vim-btn">Disable Vim Mode</button>
+            <button id="toggle-vim-btn">Enable Vim Mode</button>
             <button id="share-btn">Share Code</button>
+        </div>
+        <div id="share-url-container">
+            <input type="text" id="share-url" readonly>
+            <div id="share-url-tooltip">URL copied to clipboard!</div>
         </div>
 
         <div id="result-container">
